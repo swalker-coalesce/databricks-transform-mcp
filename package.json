@@ -1,0 +1,12 @@
+{
+  "name": "databricks-transform-mcp",
+  "version": "1.0.0",
+  "description": "Databricks App that hosts the Coalesce Transform MCP server over HTTP/SSE",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "coalesce-transform-mcp": "latest",
+    "supergateway": "latest"
+  }
+}
