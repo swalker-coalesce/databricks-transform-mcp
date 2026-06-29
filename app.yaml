@@ -2,6 +2,6 @@ command: ["sh", "-c", "pip install -q -r requirements.txt && uvicorn server:app 
 
 env:
   - name: COALESCE_ACCESS_TOKEN
-    valueFrom: coalesce-access-token
+    valueFrom: coalesce-mcp
   - name: COALESCE_BASE_URL
     value: "https://app.australia-southeast1.gcp.coalescesoftware.io"
