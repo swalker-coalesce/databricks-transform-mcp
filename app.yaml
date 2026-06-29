@@ -8,8 +8,9 @@ env:
   # databricks secrets put-secret coalesce-mcp access-token
   - name: COALESCE_ACCESS_TOKEN
     valueFrom:
-      secretName: coalesce-mcp
-      key: access-token
+      secretRef:
+        name: coalesce-mcp
+        key: access-token
 
   # Coalesce region base URL (default is US — change for EU/APAC)
   - name: COALESCE_BASE_URL
@@ -32,13 +33,16 @@ env:
   # Optional: Snowflake credentials for run/create operations
   # - name: SNOWFLAKE_ACCOUNT
   #   valueFrom:
-  #     secretName: coalesce-mcp
-  #     key: snowflake-account
+  #     secretRef:
+  #       name: coalesce-mcp
+  #       key: snowflake-account
   # - name: SNOWFLAKE_USER
   #   valueFrom:
-  #     secretName: coalesce-mcp
-  #     key: snowflake-user
+  #     secretRef:
+  #       name: coalesce-mcp
+  #       key: snowflake-user
   # - name: SNOWFLAKE_PRIVATE_KEY
   #   valueFrom:
-  #     secretName: coalesce-mcp
-  #     key: snowflake-private-key
+  #     secretRef:
+  #       name: coalesce-mcp
+  #       key: snowflake-private-key
