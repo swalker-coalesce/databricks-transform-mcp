@@ -48,37 +48,40 @@ async def _read_resource(uri: str):
     return result.contents
 
 
+# Build base app first so its lifespan is accessible below
+_base_app = mcp.streamable_http_app()
+
+
 @asynccontextmanager
 async def lifespan(app: Starlette):
     global _session
-    async with stdio_client(
-        StdioServerParameters(
-            command="npx",
-            args=["coalesce-transform-mcp"],
-            env={**os.environ},
-        )
-    ) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            _session = session
-            yield
-            _session = None
+    # Run FastMCP's session manager lifespan (initializes task group)
+    async with _base_app.router.lifespan_context(app):
+        # Start the stdio subprocess
+        async with stdio_client(
+            StdioServerParameters(
+                command="npx",
+                args=["coalesce-transform-mcp"],
+                env={**os.environ},
+            )
+        ) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                _session = session
+                yield
+                _session = None
 
-
-# Stateless HTTP required by Databricks Genie — each request is independent
-_base_app = mcp.streamable_http_app()
 
 app = Starlette(
     routes=list(_base_app.routes),
     lifespan=lifespan,
 )
 
-# CORS — DATABRICKS_HOST is auto-injected by the Databricks Apps runtime
-_host = os.environ.get("DATABRICKS_HOST")
+# CORS — allow all origins to unblock Genie; tighten after confirmed working
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[_host] if _host else ["*"],
-    allow_credentials=bool(_host),
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
