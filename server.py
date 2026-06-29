@@ -5,22 +5,23 @@ Exposes coalesce-transform-mcp (stdio) over Streamable HTTP for Genie.
 import os
 from contextlib import asynccontextmanager
 from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.client.stdio import stdio_client
 from mcp import ClientSession, StdioServerParameters
 
 _session: ClientSession | None = None
-
-# Injected automatically by the Databricks Apps runtime
 _host = os.environ.get("DATABRICKS_HOST", "")
 
 mcp = FastMCP(
     "coalesce-transform-proxy",
-    stateless_http=True,
+    stateless_http=True,    # required by Genie Code
+    json_response=True,     # POST only needs Accept: application/json (no SSE header)
     transport_security=TransportSecuritySettings(
-        enable_dns_rebinding_protection=False,  # Databricks Apps OAuth handles auth
+        enable_dns_rebinding_protection=False,
     ),
 )
 _srv = mcp._mcp_server
@@ -58,7 +59,6 @@ async def _read_resource(uri: str):
     return result.contents
 
 
-# Build base app first so its lifespan is accessible
 _base_app = mcp.streamable_http_app()
 
 
@@ -85,7 +85,18 @@ app = Starlette(
     lifespan=lifespan,
 )
 
-# CORS — credentials require an explicit origin, not wildcard
+
+class MCPHealthCheckMiddleware(BaseHTTPMiddleware):
+    """Return 200 for GET /mcp without SSE Accept header (Genie health check)."""
+    async def dispatch(self, request, call_next):
+        if request.method == "GET" and request.url.path == "/mcp":
+            accept = request.headers.get("accept", "")
+            if "text/event-stream" not in accept:
+                return JSONResponse({"status": "ok", "server": "coalesce-transform-proxy"})
+        return await call_next(request)
+
+
+app.add_middleware(MCPHealthCheckMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[_host] if _host else ["*"],
