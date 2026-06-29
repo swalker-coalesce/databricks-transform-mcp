@@ -66,7 +66,7 @@ async def lifespan(app: Starlette):
 
 
 # Stateless HTTP required by Databricks Genie — each request is independent
-_base_app = mcp.http_app(stateless_http=True)
+_base_app = mcp.streamable_http_app()
 
 app = Starlette(
     routes=list(_base_app.routes),
