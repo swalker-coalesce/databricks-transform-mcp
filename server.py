@@ -18,9 +18,9 @@ _host = os.environ.get("DATABRICKS_HOST", "")
 
 mcp = FastMCP(
     "coalesce-transform-proxy",
-    stateless_http=True,                          # required by Genie Code
+    stateless_http=True,
     transport_security=TransportSecuritySettings(
-        allowed_origins=[_host] if _host else [], # allow workspace origin
+        enable_dns_rebinding_protection=False,  # Databricks Apps OAuth handles auth
     ),
 )
 _srv = mcp._mcp_server
