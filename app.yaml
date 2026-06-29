@@ -1,3 +1,10 @@
+resources:
+  - name: coalesce-mcp
+    secret:
+      scope: coalesce-mcp
+      key: coalesce-mcp
+      permission: READ
+
 command:
   - "sh"
   - "-c"
