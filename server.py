@@ -97,10 +97,11 @@ class MCPHealthCheckMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(MCPHealthCheckMiddleware)
+app.add_middleware(MCPHealthCheckMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[_host] if _host else ["*"],
-    allow_credentials=bool(_host),
+    allow_origins=["*"],       # wildcard — fixes the 400 on OPTIONS preflight
+    allow_credentials=False,   # required with wildcard; Bearer auth doesn't need this
     allow_methods=["*"],
     allow_headers=["*"],
 )
