@@ -7,12 +7,22 @@ from contextlib import asynccontextmanager
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.client.stdio import stdio_client
 from mcp import ClientSession, StdioServerParameters
 
 _session: ClientSession | None = None
 
-mcp = FastMCP("coalesce-transform-proxy")
+# Injected automatically by the Databricks Apps runtime
+_host = os.environ.get("DATABRICKS_HOST", "")
+
+mcp = FastMCP(
+    "coalesce-transform-proxy",
+    stateless_http=True,                          # required by Genie Code
+    transport_security=TransportSecuritySettings(
+        allowed_origins=[_host] if _host else [], # allow workspace origin
+    ),
+)
 _srv = mcp._mcp_server
 
 
@@ -48,16 +58,14 @@ async def _read_resource(uri: str):
     return result.contents
 
 
-# Build base app first so its lifespan is accessible below
+# Build base app first so its lifespan is accessible
 _base_app = mcp.streamable_http_app()
 
 
 @asynccontextmanager
 async def lifespan(app: Starlette):
     global _session
-    # Run FastMCP's session manager lifespan (initializes task group)
     async with _base_app.router.lifespan_context(app):
-        # Start the stdio subprocess
         async with stdio_client(
             StdioServerParameters(
                 command="npx",
@@ -77,11 +85,11 @@ app = Starlette(
     lifespan=lifespan,
 )
 
-# CORS — allow all origins to unblock Genie; tighten after confirmed working
+# CORS — credentials require an explicit origin, not wildcard
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[_host] if _host else ["*"],
+    allow_credentials=bool(_host),
     allow_methods=["*"],
     allow_headers=["*"],
 )
