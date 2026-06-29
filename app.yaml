@@ -13,13 +13,13 @@ env:
 
   # Coalesce region base URL (default is US — change for EU/APAC)
   - name: COALESCE_BASE_URL
-    value: https://app.coalescesoftware.io
+    value: https://app.australia-southeast1.gcp.coalescesoftware.io
 
   # External URL of this Databricks App — used by SSE clients to reach /message
   # Format: https://<workspace-host>/apps/<app-name>
   # Find this in Apps UI after first deploy; update and redeploy
   - name: MCP_BASE_URL
-    value: https://your-workspace.azuredatabricks.net/apps/coalesce-transform-mcp
+    value: https://coalesce-transform-mcp-522681774734732.gcp.databricksapps.com
 
   # Optional: path to a Databricks Repo checkout for repo-backed tools
   # - name: COALESCE_REPO_PATH
