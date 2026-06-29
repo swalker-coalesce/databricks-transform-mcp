@@ -1,10 +1,11 @@
 """
 MCP proxy for Databricks Apps.
-Exposes coalesce-transform-mcp (stdio) over Streamable HTTP so Genie can connect.
+Exposes coalesce-transform-mcp (stdio) over Streamable HTTP for Genie.
 """
 import os
 from contextlib import asynccontextmanager
 from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
 from mcp.client.stdio import stdio_client
 from mcp import ClientSession, StdioServerParameters
@@ -64,8 +65,20 @@ async def lifespan(app: Starlette):
             _session = None
 
 
-# Compose FastMCP's HTTP routes with our subprocess lifespan
+# Stateless HTTP required by Databricks Genie — each request is independent
+_base_app = mcp.http_app(stateless_http=True)
+
 app = Starlette(
-    routes=list(mcp.streamable_http_app().routes),
+    routes=list(_base_app.routes),
     lifespan=lifespan,
+)
+
+# CORS — DATABRICKS_HOST is auto-injected by the Databricks Apps runtime
+_host = os.environ.get("DATABRICKS_HOST")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[_host] if _host else ["*"],
+    allow_credentials=bool(_host),
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
