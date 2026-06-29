@@ -37,7 +37,7 @@ Coalesce API  +  Snowflake
 
 ---
 
-## 1. Create Databricks Secrets
+## 1. Store the Coalesce token in Databricks Secrets
 
 ```bash
 # Create a secret scope (skip if it already exists)
@@ -50,7 +50,24 @@ databricks secrets put-secret coalesce-mcp coalesce-access-token
 
 ---
 
-## 2. Deploy
+## 2. Link the secret to the app via the UI
+
+Databricks Apps injects secrets as env vars only after they're linked to the app through the UI:
+
+1. In Databricks, go to **Compute → Apps** and open (or create) the app
+2. Click **Edit app → App resources → + Add resource → Secret**
+3. Set:
+   - **Scope**: `coalesce-mcp`
+   - **Key**: `coalesce-access-token`
+   - **Resource key**: `coalesce-access-token` ← must match `valueFrom` in `app.yaml`
+   - **Permission**: `Can read`
+4. Save and redeploy
+
+This is what wires the `COALESCE_ACCESS_TOKEN` env var in `app.yaml` to the actual secret value.
+
+---
+
+## 3. Deploy
 
 Push this repo to a Databricks Git Folder, then deploy:
 
