@@ -12,8 +12,6 @@ command:
 
 env:
   - name: COALESCE_ACCESS_TOKEN
-    valueFrom:
-      secretRef:
-        name: coalesce-mcp   # ✅ references the resource defined above
+    valueFrom: coalesce-mcp
   - name: COALESCE_BASE_URL
     value: "https://app.australia-southeast1.gcp.coalescesoftware.io"
