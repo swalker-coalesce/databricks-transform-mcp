@@ -3,3 +3,6 @@ package-lock.json
 .env
 .env.*
 .claude/
+__pycache__/
+*.egg-info/
+.venv/

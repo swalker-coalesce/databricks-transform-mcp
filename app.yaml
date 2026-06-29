@@ -1,48 +1,12 @@
-command:
-  - bash
-  - start.sh
+command: ["sh", "-c", "pip install -q -r requirements.txt && uvicorn server:app --host 0.0.0.0 --port 8000"]
 
 env:
-  # Required: Coalesce API token — store in Databricks Secrets
-  # databricks secrets create-scope coalesce-mcp
-  # databricks secrets put-secret coalesce-mcp access-token
   - name: COALESCE_ACCESS_TOKEN
     valueFrom:
       secretRef:
         name: coalesce-mcp
-        key: access-token
-
-  # Coalesce region base URL (default is US — change for EU/APAC)
+        key: coalesce-access-token
   - name: COALESCE_BASE_URL
-    value: https://app.australia-southeast1.gcp.coalescesoftware.io
-
-  # External URL of this Databricks App — used by SSE clients to reach /message
-  # Format: https://<workspace-host>/apps/<app-name>
-  # Find this in Apps UI after first deploy; update and redeploy
-  - name: MCP_BASE_URL
-    value: https://coalesce-transform-mcp-522681774734732.gcp.databricksapps.com
-
-  # Optional: path to a Databricks Repo checkout for repo-backed tools
-  # - name: COALESCE_REPO_PATH
-  #   value: /Workspace/Repos/your-repo/your-project
-
-  # Optional: set to "true" for read-only mode (safe for Genie)
-  # - name: COALESCE_MCP_READ_ONLY
-  #   value: "true"
-
-  # Optional: Snowflake credentials for run/create operations
-  # - name: SNOWFLAKE_ACCOUNT
-  #   valueFrom:
-  #     secretRef:
-  #       name: coalesce-mcp
-  #       key: snowflake-account
-  # - name: SNOWFLAKE_USER
-  #   valueFrom:
-  #     secretRef:
-  #       name: coalesce-mcp
-  #       key: snowflake-user
-  # - name: SNOWFLAKE_PRIVATE_KEY
-  #   valueFrom:
-  #     secretRef:
-  #       name: coalesce-mcp
-  #       key: snowflake-private-key
+    value: "https://app.australia-southeast1.gcp.coalescesoftware.io"
+  - name: PORT
+    value: "8000"
